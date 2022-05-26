@@ -19,6 +19,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"time"
 
 	intoto "github.com/in-toto/in-toto-golang/in_toto"
 	slsa02 "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
@@ -156,12 +157,11 @@ func GenerateProvenance(name, digest, command, envs, workingDir string) ([]byte,
 	}
 
 	// Upload the signed attestation to rekor.
-	/*
-		r := sigstore.NewDefaultRekor()
-		if _, err := r.Upload(ctx, att); err != nil {
-			return nil, err
-		}
-	*/
+	time.Sleep(time.Minute * 10)
+	r := sigstore.NewDefaultRekor()
+	if _, err := r.Upload(ctx, att); err != nil {
+		return nil, err
+	}
 
 	return att.Bytes(), nil
 }
