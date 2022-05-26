@@ -136,9 +136,12 @@ run in the context of a Github Actions workflow.`,
 				})
 				check(err)
 
-				r := sigstore.NewDefaultRekor()
-				_, err = r.Upload(ctx, att)
-				check(err)
+				/*
+					r := sigstore.NewDefaultRekor()
+
+						_, err = r.Upload(ctx, att)
+						check(err)
+				*/
 
 				f, err := getFile(attPath)
 				check(err)
