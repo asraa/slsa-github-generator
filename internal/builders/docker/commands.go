@@ -27,12 +27,30 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// InputOptions are the common options for the dry run and build command.
+type InputOptions struct {
+	BuildConfigPath string
+	SourceRepo      string
+	GitCommitHash   string
+	BuilderImage    string
+}
+
+func (o *InputOptions) AddFlags(cmd *cobra.Command) {
+	cmd.Flags().StringVarP(&o.BuildConfigPath, "build_config_path", "c", "", "Required - Path to a toml file containing the build configs.")
+
+	cmd.Flags().StringVarP(&o.SourceRepo, "source_repo", "s", "",
+		"Required - URL of the source repo.")
+
+	cmd.Flags().StringVarP(&o.GitCommitHash, "git_commit_hash", "g", "",
+		"Required - SHA1 Git commit digest of the revision of the source code to build the artefact from.")
+
+	cmd.Flags().StringVarP(&o.BuilderImage, "builder_image", "b", "",
+		"Required - URL indicating the Docker builder image, including a URI and image digest.")
+}
+
 // DryRunCmd validates the input flags, generates a BuildDefinition from them.
 func DryRunCmd(check func(error)) *cobra.Command {
-	var buildConfigPath string
-	var sourceRepo string
-	var gitCommitHash string
-	var builderImage string
+	o := &InputOptions{}
 	var buildDefinitionPath string
 
 	var cmd = &cobra.Command{
@@ -45,16 +63,7 @@ func DryRunCmd(check func(error)) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&buildConfigPath, "build_config_path", "c", "", "Required - Path to a toml file containing the build configs.")
-
-	cmd.Flags().StringVarP(&sourceRepo, "source_repo", "s", "",
-		"Required - URL of the source repo.")
-
-	cmd.Flags().StringVarP(&gitCommitHash, "git_commit_hash", "g", "",
-		"Required - SHA1 Git commit digest of the revision of the source code to build the artefact from.")
-
-	cmd.Flags().StringVarP(&builderImage, "builder_image", "b", "",
-		"Required - URL indicating the Docker builder image, including a URI and image digest.")
+	o.AddFlags(cmd)
 
 	cmd.Flags().StringVarP(&buildDefinitionPath, "build_definition_path", "o", "",
 		"Required - Path to store the generated BuildDefinition to.")
@@ -76,10 +85,7 @@ func writeBuildDefinitionToFile(bd pkg.BuildDefinition, path string) error {
 
 // BuildCmd builds the artifacts using the input flags, and prints out their digests, or exists with an error.
 func BuildCmd(check func(error)) *cobra.Command {
-	var buildConfigPath string
-	var sourceRepo string
-	var gitCommitHash string
-	var builderImage string
+	o := &InputOptions{}
 
 	var cmd = &cobra.Command{
 		Use:   "build [FLAGS]",
@@ -91,17 +97,7 @@ func BuildCmd(check func(error)) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&buildConfigPath, "build_config_path", "c", "",
-		"Required - Path to a toml file containing the build configs.")
-
-	cmd.Flags().StringVarP(&sourceRepo, "source_repo", "s", "",
-		"Required - URL of the source repo.")
-
-	cmd.Flags().StringVarP(&gitCommitHash, "git_commit_hash", "g", "",
-		"Required - SHA1 Git commit digest of the revision of the source code to build the artefact from.")
-
-	cmd.Flags().StringVarP(&builderImage, "builder_image", "b", "",
-		"Required - URL indicating the Docker builder image, including a URI and image digest.")
+	o.AddFlags(cmd)
 
 	return cmd
 }
