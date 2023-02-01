@@ -2,11 +2,7 @@ package sigstore
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/sigstore/cosign/pkg/cosign"
-	"github.com/sigstore/rekor/pkg/client"
-	"github.com/sigstore/rekor/pkg/generated/client/entries"
 	"github.com/sigstore/rekor/pkg/generated/models"
 	"github.com/slsa-framework/slsa-github-generator/signing"
 )
@@ -61,35 +57,38 @@ func NewRekor(rekorAddr string) *Rekor {
 
 // Upload uploads the signed attestation to the rekor transparency log.
 func (r *Rekor) Upload(ctx context.Context, att signing.Attestation) (signing.LogEntry, error) {
-	rekorClient, err := client.GetRekorClient(r.rekorAddr)
-	if err != nil {
-		return nil, fmt.Errorf("creating rekor client: %w", err)
-	}
-	// TODO: Is it a bug that we need []byte(string(k.Cert)) or else we hit invalid PEM?
-	logEntry, err := cosign.TLogUploadInTotoAttestation(ctx, rekorClient, att.Bytes(), []byte(string(att.Cert())))
-	if err != nil {
-		return nil, fmt.Errorf("uploading attestation: %w", err)
-	}
-
-	params := entries.NewGetLogEntryByIndexParamsWithContext(ctx)
-	params.SetLogIndex(*logEntry.LogIndex)
-	resp, err := rekorClient.Entries.GetLogEntryByIndex(params)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving log uuid by index: %w", err)
-	}
-	var uuid string
-	for ix, entry := range resp.Payload {
-		entry := entry
-		if err := cosign.VerifyTLogEntry(ctx, rekorClient, &entry); err != nil {
-			return nil, fmt.Errorf("validating log entry: %w", err)
+	return nil, nil
+	/*
+		rekorClient, err := client.GetRekorClient(r.rekorAddr)
+		if err != nil {
+			return nil, fmt.Errorf("creating rekor client: %w", err)
 		}
-		uuid = ix
-		logEntry = &entry
-	}
+		// TODO: Is it a bug that we need []byte(string(k.Cert)) or else we hit invalid PEM?
+		logEntry, err := cosign.TLogUploadInTotoAttestation(ctx, rekorClient, att.Bytes(), []byte(string(att.Cert())))
+		if err != nil {
+			return nil, fmt.Errorf("uploading attestation: %w", err)
+		}
 
-	fmt.Printf("Uploaded signed attestation to rekor with UUID %s.\n", uuid)
-	return &rekorEntryAnon{
-		entry: logEntry,
-		uuid:  uuid,
-	}, nil
+		params := entries.NewGetLogEntryByIndexParamsWithContext(ctx)
+		params.SetLogIndex(*logEntry.LogIndex)
+		resp, err := rekorClient.Entries.GetLogEntryByIndex(params)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving log uuid by index: %w", err)
+		}
+		var uuid string
+		for ix, entry := range resp.Payload {
+			entry := entry
+			if err := cosign.VerifyTLogEntry(ctx, rekorClient, &entry); err != nil {
+				return nil, fmt.Errorf("validating log entry: %w", err)
+			}
+			uuid = ix
+			logEntry = &entry
+		}
+
+		fmt.Printf("Uploaded signed attestation to rekor with UUID %s.\n", uuid)
+		return &rekorEntryAnon{
+			entry: logEntry,
+			uuid:  uuid,
+		}, nil
+	*/
 }
